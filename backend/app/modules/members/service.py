@@ -1,7 +1,7 @@
 from fastapi import HTTPException
 
 from app.core.store import store
-from app.modules.levels.service import get_level
+from app.modules.levels.service import calculate_level_for_points, get_level
 from app.modules.members.models import Member, MemberCreate, MemberUpdate
 
 
@@ -39,3 +39,16 @@ def update_member(member_id: int, payload: MemberUpdate) -> Member:
         get_level(updates["level_id"])
     existing.update(updates)
     return _with_level(existing)
+
+
+def recalculate_all_member_levels() -> dict:
+    updated_count = 0
+    for member in store.members.values():
+        new_level = calculate_level_for_points(member["points"])
+        if new_level and member["level_id"] != new_level.id:
+            member["level_id"] = new_level.id
+            updated_count += 1
+    return {
+        "total": len(store.members),
+        "updated": updated_count,
+    }

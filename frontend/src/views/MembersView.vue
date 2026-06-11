@@ -19,6 +19,7 @@
           <option v-for="level in levels" :key="level.id" :value="level.id">{{ level.name }}</option>
         </select>
       </label>
+      <button class="secondary-button" @click="recalculateLevels">重新计算等级</button>
     </section>
 
   <div class="content-grid two-columns">
@@ -175,6 +176,18 @@ async function submit() {
 
 function selectMember(member) {
   selectedMember.value = member
+}
+
+async function recalculateLevels() {
+  try {
+    const result = await memberApi.recalculateLevels()
+    message.value = `已重新计算等级，共 ${result.total} 名会员，更新 ${result.updated} 人`
+    messageType.value = 'success'
+    await loadData()
+  } catch (error) {
+    message.value = error.message
+    messageType.value = 'error'
+  }
 }
 
 onMounted(loadData)

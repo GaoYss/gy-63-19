@@ -13,7 +13,13 @@
         <h2>等级权益</h2>
       </div>
       <div class="card-grid">
-        <article v-for="level in levels" :key="level.id" class="level-card">
+        <article
+          v-for="level in levels"
+          :key="level.id"
+          class="level-card"
+          :class="{ selected: editingLevel?.id === level.id }"
+          @click="selectLevelForEdit(level)"
+        >
           <div>
             <strong>{{ level.name }}</strong>
             <span>{{ level.min_points }} 分起</span>
@@ -31,7 +37,8 @@
 
     <section class="panel">
       <div class="panel-header">
-        <h2>新增等级</h2>
+        <h2>{{ editingLevel ? '编辑等级' : '新增等级' }}</h2>
+        <button v-if="editingLevel" class="text-button" @click="cancelEdit">取消编辑</button>
       </div>
       <MessageBanner :message="message" :type="messageType" />
       <form class="form-stack" @submit.prevent="submit">
@@ -51,7 +58,9 @@
           权益
           <input v-model="benefitText" placeholder="用逗号分隔" />
         </label>
-        <button class="primary-button" type="submit">保存等级</button>
+        <button class="primary-button" type="submit">
+          {{ editingLevel ? '保存修改' : '保存等级' }}
+        </button>
       </form>
     </section>
   </div>
@@ -72,6 +81,7 @@ const levels = ref([...fallbackLevels])
 const benefitText = ref('')
 const message = ref('')
 const messageType = ref('success')
+const editingLevel = ref(null)
 const form = reactive({
   name: '',
   min_points: 0,
@@ -95,19 +105,48 @@ async function loadLevels() {
   levels.value = keepList(levelList, levels.value)
 }
 
+function selectLevelForEdit(level) {
+  editingLevel.value = level
+  form.name = level.name
+  form.min_points = level.min_points
+  form.discount = level.discount
+  benefitText.value = level.benefits.join('，')
+}
+
+function cancelEdit() {
+  editingLevel.value = null
+  resetForm()
+}
+
+function resetForm() {
+  Object.assign(form, { name: '', min_points: 0, discount: 0.95 })
+  benefitText.value = ''
+}
+
 async function submit() {
   try {
-    await levelApi.create({
-      ...form,
-      benefits: benefitText.value
-        .split(/[,，]/)
-        .map((item) => item.trim())
-        .filter(Boolean),
-    })
-    Object.assign(form, { name: '', min_points: 0, discount: 0.95 })
-    benefitText.value = ''
-    message.value = '等级已保存'
+    const benefits = benefitText.value
+      .split(/[,，]/)
+      .map((item) => item.trim())
+      .filter(Boolean)
+
+    if (editingLevel.value) {
+      await levelApi.update(editingLevel.value.id, {
+        name: form.name,
+        min_points: form.min_points,
+        discount: form.discount,
+        benefits,
+      })
+      message.value = '等级已更新'
+    } else {
+      await levelApi.create({
+        ...form,
+        benefits,
+      })
+      message.value = '等级已保存'
+    }
     messageType.value = 'success'
+    cancelEdit()
     await loadLevels()
   } catch (error) {
     message.value = error.message

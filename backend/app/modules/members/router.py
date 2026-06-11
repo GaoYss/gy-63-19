@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 
 from app.modules.members.models import Member, MemberCreate, MemberUpdate
-from app.modules.members.service import create_member, list_members, update_member
+from app.modules.members.service import create_member, list_members, recalculate_all_member_levels, update_member
 
 router = APIRouter()
 
@@ -19,3 +19,8 @@ def post_member(payload: MemberCreate) -> Member:
 @router.patch("/{member_id}", response_model=Member)
 def patch_member(member_id: int, payload: MemberUpdate) -> Member:
     return update_member(member_id, payload)
+
+
+@router.post("/recalculate-levels")
+def post_recalculate_levels() -> dict:
+    return recalculate_all_member_levels()

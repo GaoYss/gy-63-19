@@ -425,6 +425,43 @@ select {
   color: #344054;
 }
 
+.level-card.selected {
+  border-color: #2f7d32;
+  background: #f5fbf2;
+  cursor: pointer;
+}
+
+.level-card {
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.level-card:hover {
+  border-color: #cfe3c7;
+}
+
+.text-button {
+  background: none;
+  border: none;
+  color: #236229;
+  font-weight: 700;
+  padding: 0;
+  cursor: pointer;
+}
+
+.toolbar-panel {
+  display: flex;
+  gap: 14px;
+  padding: 16px;
+  align-items: end;
+  flex-wrap: wrap;
+}
+
+.toolbar-panel label {
+  flex: 1;
+  min-width: 180px;
+}
+
 .reward-card,
 .presale-card {
   display: grid;
